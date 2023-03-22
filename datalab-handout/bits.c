@@ -181,7 +181,8 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  int mask = 0xAAAAAAAA;
+  int mask = 0xAA+(0xAA<<8);
+  mask += (mask << 16);
   return !(mask ^ (mask & x));
 }
 /* 
@@ -206,7 +207,10 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int sign = 1 << 31;
+  int upperBound = ~(sign|0x39);
+  int lowerBound = ~0x30;
+  return !((upperBound+x)>>31 | (lowerBound+x+1)>>31);
 }
 /* 
  * conditional - same as x ? y : z 
@@ -216,7 +220,9 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  x = !!x;
+  x = ~x + 1;
+  return (y&x)|((~x)&z);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -226,7 +232,13 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  int negx = (~x) + 1;
+  int sub = negx + y;
+// 注意c语言默认是算数右移
+  int subsign = (sub >> 31)&1;
+  int xsign = (x >> 31)&1;
+  int ysign = (y >> 31)&1;
+  return ((xsign^ysign)&xsign) | (!(xsign^ysign) & !subsign);
 }
 //4
 /* 
@@ -238,7 +250,7 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  return ((x | ((~x)+1))>>31)+1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -253,7 +265,22 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+  int b16, b8, b4, b2, b1, b0;
+  int sign = x >> 31;
+  x = (sign&(~x)) | ((~sign)&x);
+
+  b16 = !!(x>>16)<<4;
+  x = x >> b16;
+  b8 = !!(x>>8)<<3;
+  x = x >> b8;
+  b4 = !!(x>>4)<<2;
+  x = x >> b4;
+  b2 = !!(x>>2)<<1;
+  x = x >> b2;
+  b1 = !!(x>>1);
+  x = x >> b1;
+  b0 = x;
+  return b16 + b8 + b4 + b2 + b1 + b0 + 1;
 }
 //float
 /* 
@@ -268,7 +295,14 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+// 无穷大、乘2后NAN、0、NAN都需要单独拎出来考虑
+  int exp = (0x7f800000 & uf)>>23;
+  int sign = uf & (1 << 31);
+  if (exp == 0) return (uf<<1)|sign;
+  if (exp == 255) return uf;
+  exp++;
+  if (exp == 255) return 0x7f800000 | sign;
+  return (exp << 23) | (uf&0x807fffff);
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -283,7 +317,19 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  int exp = ((0x7f800000 & uf)>>23)-127;
+  int sign = uf & (1 << 31);
+  int flac = (uf & 0x007fffff) | 0x00800000;
+  if (!(uf&0x7fffffff)) return 0;
+
+  if (exp >= 31) return 0x80000000;
+  if (exp < 0) return 0;
+
+  if (exp > 23) flac = flac << (exp - 23);
+  else flac = flac >> (23-exp); 
+  
+  if (sign) return (~flac)+1;
+  return flac;
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -299,5 +345,11 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+  unsigned INF = 0x7f800000;
+  int exp = x + 127;
+  if (exp < 0 && exp > -23) return 0x00400000 >> (~exp + 1);
+  if (exp <= -23) return 0;
+  if (exp >= 255) return INF;
+
+  return exp << 23;
 }
