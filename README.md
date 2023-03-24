@@ -21,6 +21,7 @@ $ sudo yum install -y glibc-devel.i686 libstdc++-devel.i686
 
 
 ### bomb lab
+[gdb使用方法](http://csapp.cs.cmu.edu/3e/docs/gdbnotes-x86-64.pdf)
 
 [实验代码](http://csapp.cs.cmu.edu/3e/bomb.tar)
 在gdb调试过程中可能出现如下提示：
