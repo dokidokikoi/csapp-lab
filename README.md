@@ -2,8 +2,6 @@
 csapp lab
 
 ### datalab
-整数寄存器汇总
-![](r.png)
 
 [实验代码](http://csapp.cs.cmu.edu/3e/datalab-handout.tar)
 
@@ -23,6 +21,10 @@ $ sudo yum install -y glibc-devel.i686 libstdc++-devel.i686
 
 
 ### bomb lab
+
+整数寄存器汇总
+![](r.png)
+
 [gdb使用方法](http://csapp.cs.cmu.edu/3e/docs/gdbnotes-x86-64.pdf)
 
 [实验代码](http://csapp.cs.cmu.edu/3e/bomb.tar)
