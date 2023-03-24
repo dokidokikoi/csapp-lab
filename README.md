@@ -2,6 +2,8 @@
 csapp lab
 
 ### datalab
+整数寄存器汇总
+![](r.png)
 
 [实验代码](http://csapp.cs.cmu.edu/3e/datalab-handout.tar)
 
