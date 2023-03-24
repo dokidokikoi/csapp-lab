@@ -23,7 +23,7 @@ $ sudo yum install -y glibc-devel.i686 libstdc++-devel.i686
 ### bomb lab
 
 整数寄存器汇总
-![](r.png)
+<img src="r.png" width="50%" />
 
 [gdb使用方法](http://csapp.cs.cmu.edu/3e/docs/gdbnotes-x86-64.pdf)
 
